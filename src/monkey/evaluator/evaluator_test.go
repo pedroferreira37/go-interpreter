@@ -254,20 +254,34 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObject(t *testing.T) {
+	input := "fn(x) { x + 2; };"
+	evaluated := testEval(input)
+	fn, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Fatalf("object is not Function. got=%T (%+v)", evaluated, evaluated)
+	}
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("function has wrong parameters. Parameters=%+v",
+			fn.Parameters)
+	}
+	if fn.Parameters[0].String() != "x" {
+		t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
+	}
+	expectedBody := "(x + 2)"
+	if fn.Body.String() != expectedBody {
+		t.Fatalf("body is not %q. got=%q", expectedBody, fn.Body.String())
+	}
+}
 
-func TestFunctionObject(t *testing.T) { input := "fn(x) { x + 2; };"
-evaluated := testEval(input)
-fn, ok := evaluated.(*object.Function) if !ok {
-           t.Fatalf("object is not Function. got=%T (%+v)", evaluated, evaluated)
-       }
-if len(fn.Parameters) != 1 {
-t.Fatalf("function has wrong parameters. Parameters=%+v",
-               fn.Parameters)
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello World!"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
 }
-if fn.Parameters[0].String() != "x" {
-t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
-}
-       expectedBody := "(x + 2)"
-if fn.Body.String() != expectedBody {
-t.Fatalf("body is not %q. got=%q", expectedBody, fn.Body.String())
-} }
