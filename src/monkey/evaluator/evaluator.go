@@ -73,6 +73,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
+
 	case *ast.FunctionLiteral:
 		params := node.Parameters
 		body := node.Body
@@ -90,8 +93,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 
 		return applyFunction(function, args)
-	case *ast.StringLiteral:
-		return &object.String{Value: node.Value}
 
 	}
 
@@ -214,10 +215,25 @@ func evalInfixExpression(
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s",
 			left.Type(), operator, right.Type())
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpresison(operator, left, right)
 	default:
 		return newError("unknown operator: %s %s %s",
 			left.Type(), operator, right.Type())
 	}
+}
+
+func evalStringInfixExpresison(
+	operator string,
+	left, right object.Object,
+) object.Object {
+	if operator != "+" {
+		return newError("unkown operator %s %s %s", left.Type(), operator, right.Type())
+	}
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	return &object.String{Value: leftVal + rightVal}
+
 }
 
 func evalBangOperatorExpression(right object.Object) object.Object {
@@ -295,7 +311,7 @@ func evalIdentifier(
 	env *object.Environment,
 ) object.Object {
 	val, ok := env.Get(node.Value)
-	if !ok {
+	if ok {
 		return val
 	}
 
